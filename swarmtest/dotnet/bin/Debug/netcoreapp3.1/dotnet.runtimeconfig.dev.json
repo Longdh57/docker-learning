@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "/Users/longdao/.dotnet/store/|arch|/|tfm|",
+      "/Users/longdao/.nuget/packages"
+    ]
+  }
+}

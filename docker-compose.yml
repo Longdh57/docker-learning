@@ -1,0 +1,111 @@
+version: "3.7"
+
+services:
+
+  ssh:
+    image: masterglorious/sshserver
+    ports:
+      - 2222:22
+    environment:
+      sshuser: sshuser
+      password: 111111
+    volumes:
+      - /home/data1/:/data/
+    deploy:
+      replicas: 3
+      placement:
+        constraints:
+          - node.role==manager
+
+  samba:
+    image: masterglorious/samba
+    ports:
+      - 139:139
+      - 145:145
+    environment:
+      smbuser: smbuser
+      password: 111111
+    volumes:
+      - /home/data/:/data/
+    deploy:
+      replicas: 3
+      placement:
+        constraints:
+          - node.role==manager
+
+  service1:
+    image: masterglorious/swarmtest:nodejs
+    ports:
+      - 8085:8085
+    networks:
+      - net1
+    volumes:
+      - vol1:/d1/
+      - vol2:/d2/
+      - vol3:/d3/
+
+    deploy:
+      replicas: 6
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 250MB
+      restart_policy:
+        condition: on-failure
+
+  service2:
+    image: masterglorious/swarmtest:php
+    ports:
+      - 8088:8085
+    networks:
+      - net2
+    volumes:
+      - vol1:/d1/
+      - vol2:/d2/
+      - vol3:/d3/
+
+    deploy:
+      replicas: 4
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 150MB
+      restart_policy:
+        condition: on-failure 
+
+networks:
+  net1:
+  net2:
+    driver: overlay
+    name: www-net2
+
+volumes:
+
+  vol1:
+    driver: local
+    name: v1
+    driver_opts:
+      type: none
+      device: "/home/"
+      o: bind
+
+  vol2:
+    driver: local
+    name: v2
+    driver_opts:
+      type: cifs
+      device: //192.168.99.103/data
+      o: "username=smbuser,password=111111,file_mode=0777,dir_mode=0777"
+
+  vol3:
+    driver: vieux/sshfs
+    name: v3
+    driver_opts:
+      sshcmd: "sshuser@192.168.99.103:/data/"
+      port: 2222
+      password: 111111
+      allow_other: ""
+
+
+
+

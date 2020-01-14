@@ -1,0 +1,60 @@
+version: "3"
+
+#NETWORK
+networks:
+  my-network:
+    driver: bridge
+
+# VOLUME
+volumes:
+  dir-site:
+    driver_opts:
+      type: nfs
+      device: /Users/longdao/Docker/compose/sites/
+      o: bind
+
+services:
+  # container PHP
+  my-php:
+    container_name: php-product
+    build:
+      dockerfile: Dockerfile
+      context: ./php/
+    hostname: php
+    restart: always
+    networks:
+      - my-network
+    volumes:
+      - dir-site:/home/sites/
+
+  # container HTTPD
+  my-httpd:
+    container_name: c-httpd
+    image: "httpd:latest"
+    hostname: httpd
+    restart: always
+    networks:
+      - my-network
+    volumes:
+      - dir-site:/home/sites/
+      - ./httpd.conf:/usr/local/apache2/conf/httpd.conf
+    ports:
+      - "9999:80"
+      - "443:443"
+
+  # container MYSQL
+  my-mysql:
+    container_name: mysql-product
+    image: "mysql:latest"
+    hostname: mysql
+    restart: always
+    networks:
+      - my-network
+    volumes:
+      - ./db:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/my.cnf
+    environment:
+      - MYSQL_ROOT_PASSWORD=123abc
+      - MYSQL_DATABASE=db_site
+      - MYSQL_USER=siteuser
+      - MYSQL_PASSWORD=sitepass
